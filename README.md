@@ -1,1 +1,1 @@
-# service-relation
+relation: follow关系
