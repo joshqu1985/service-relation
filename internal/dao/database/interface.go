@@ -1,6 +1,6 @@
-package store
+package database
 
-//go:generate mockgen -destination=../mock/store_mock.go -package=mock github.com/joshqu1985/service-relation/internal/store Store
+//go:generate mockgen -destination=../mock/store_mock.go -package=mock github.com/joshqu1985/service-relation/internal/dao/database DB
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/joshqu1985/service-relation/internal/model"
 )
 
-type Store interface {
+type DB interface {
 	ListFollowers(ctx context.Context, uid string) ([]*model.Follower, error)
 	ListFollowings(ctx context.Context, uid string) ([]*model.Following, error)
 }

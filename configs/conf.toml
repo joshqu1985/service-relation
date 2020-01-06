@@ -1,35 +1,42 @@
+# This is TOML document.
+
 name = "relation"
 port = 18096
 
-[logger]
-  file_path = "/Users/qulei/mywork/service-relation/logs/logs.log"
-  max_size = 1024   # 1G
-  max_backups = 2   # 2 copy
-  max_age = 20      # 20 days
-  level = 0         # INFO
-  compress = false
+[log]
+    file_path   = "/Users/qulei/mywork/service-relation/logs/logs.log"
+    max_size    = 1024                    # 1G
+    max_backups = 2                       # 2 copy
+    max_age     = 20                      # 20 days
+    level       = "info"
+    compress    = false
 
-[discovery]
-  endpoints = ["127.0.0.1:8500"]
+[discover]
+    endpoints = ["127.0.0.1:8500"]
+    [discover.register]
+        ttl      = 10000                  # 10s
+        interval = 10000                  # 10s
+    [discover.resolver]
+        services = []
 
 [redis]
-  host = "127.0.0.1:6379"
-  auth = ""
-  index = 12 
-  max_idle = 10
+    host     = "127.0.0.1:6379"
+    auth     = ""
+    index    = 12 
+    max_idle = 10
 
 [[mysql]]
-  name = "relation"
-  option = "charset=utf8mb4"
-  [mysql.master]
-    host = "127.0.0.1:3306"
-    auth = "root:"
-    max_idle = 5
-    max_open = 30
-    max_life = 600
-  [[mysql.slave]]
-    host = "127.0.0.1:3306"
-    auth = "root:"
-    max_idle = 5
-    max_open = 30
-    max_life = 600
+    name = "relation"
+    opts = "charset=utf8mb4"
+    [mysql.master]
+        host     = "127.0.0.1:3306"
+        auth     = "root:"
+        max_idle = 5
+        max_open = 30
+        max_life = 600
+    [[mysql.slave]]
+        host     = "127.0.0.1:3306"
+        auth     = "root:"
+        max_idle = 5
+        max_open = 30
+        max_life = 600

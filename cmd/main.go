@@ -4,71 +4,67 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/opentracing/opentracing-go"
-	"google.golang.org/grpc"
-
 	"github.com/joshqu1985/fireman/pkg/configor"
-	"github.com/joshqu1985/fireman/pkg/consul"
-	"github.com/joshqu1985/fireman/pkg/locip"
-	"github.com/joshqu1985/fireman/pkg/logger"
-	"github.com/joshqu1985/fireman/pkg/mysql"
-	"github.com/joshqu1985/fireman/pkg/redis"
+	"github.com/joshqu1985/fireman/pkg/discover"
+	"github.com/joshqu1985/fireman/pkg/log"
+	"github.com/joshqu1985/fireman/pkg/store/mysql"
+	"github.com/joshqu1985/fireman/pkg/store/redis"
 	"github.com/joshqu1985/fireman/pkg/tracing"
+	"github.com/joshqu1985/fireman/pkg/transport/rpc"
 
-	"github.com/joshqu1985/service-relation/internal/cache"
+	"github.com/joshqu1985/service-relation/internal/dao/cache"
+	"github.com/joshqu1985/service-relation/internal/dao/database"
 	"github.com/joshqu1985/service-relation/internal/handler"
-	"github.com/joshqu1985/service-relation/internal/store"
+	"github.com/joshqu1985/service-relation/internal/service"
 )
 
 type Config struct {
-	Name      string
-	Port      int
-	Discovery consul.Config
-	Logger    logger.Config
-	Redis     redis.Config
-	Mysql     []mysql.Config
+	Name     string
+	Port     int
+	Discover discover.Config
+	Log      log.Config
+	Redis    redis.Config
+	Mysql    []mysql.Config
 }
 
 var (
-	Conf  Config
-	LocIP string
+	Conf Config
 )
 
 func init() {
-	if err := configor.LoadConfig("./configs/conf.toml", &Conf); err != nil {
+	if err := configor.Load("./configs/conf.toml", &Conf); err != nil {
 		panic(err)
 	}
 
-	var err error
-	if LocIP, err = locip.GetLocalIP(); err != nil {
+	log.Init(Conf.Log)
+
+	if _, err := tracing.Init(Conf.Name); err != nil {
+		panic(err)
+	}
+
+	if err := discover.Init(Conf.Discover); err != nil {
 		panic(err)
 	}
 }
 
 func main() {
+	gsvr := rpc.NewUnaryServer()
+
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", Conf.Port))
 	if err != nil {
-		fmt.Println("failed to listen:", err)
 		panic(err)
 	}
 
-	grpcSvr := grpc.NewServer(
-		grpc.UnaryInterceptor(tracing.GrpcServerInterceptor(opentracing.GlobalTracer())),
-	)
-
-	handler.RegisterHandler(grpcSvr,
-		cache.NewRedisRepo(redis.NewPool(Conf.Redis)),
-		store.NewMysqlRepo(mysql.NewPool(Conf.Mysql)),
-		logger.InitLogger(Conf.Logger))
-
-	if err := consul.NewClient(Conf.Discovery).
-		Register(Conf.Name, LocIP, Conf.Port); err != nil {
+	if err := discover.Register(Conf.Name, Conf.Port); err != nil {
 		panic(err)
 	}
-	consul.RegisterGrpcHealth(grpcSvr)
 
-	if err := grpcSvr.Serve(listener); err != nil {
-		fmt.Println("failed to serve:", err)
+	s := service.New(cache.NewRepository(redis.NewPool(Conf.Redis)),
+		database.NewRepository(mysql.NewPool(Conf.Mysql)))
+
+	handler.RegisterHandler(gsvr, s)
+
+	if err := gsvr.Serve(listener); err != nil {
 		panic(err)
 	}
 }

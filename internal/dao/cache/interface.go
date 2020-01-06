@@ -1,6 +1,6 @@
 package cache
 
-//go:generate mockgen -destination=../mock/cache_mock.go -package=mock github.com/joshqu1985/service-relation/internal/cache Cache
+//go:generate mockgen -destination=../mock/cache_mock.go -package=mock github.com/joshqu1985/service-relation/internal/dao/cache Cache
 
 import (
 	"context"
