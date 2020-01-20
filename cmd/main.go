@@ -21,8 +21,8 @@ import (
 type Config struct {
 	Name     string
 	Port     int
-	Discover discover.Config
 	Log      log.Config
+	Discover discover.Config
 	Redis    redis.Config
 	Mysql    []mysql.Config
 }
@@ -48,8 +48,6 @@ func init() {
 }
 
 func main() {
-	gsvr := rpc.NewUnaryServer()
-
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", Conf.Port))
 	if err != nil {
 		panic(err)
@@ -58,6 +56,8 @@ func main() {
 	if err := discover.Register(Conf.Name, Conf.Port); err != nil {
 		panic(err)
 	}
+
+	gsvr := rpc.NewUnaryServer()
 
 	s := service.New(cache.NewRepository(redis.NewPool(Conf.Redis)),
 		database.NewRepository(mysql.NewPool(Conf.Mysql)))
