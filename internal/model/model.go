@@ -3,8 +3,8 @@ package model
 import (
 	"github.com/jinzhu/gorm"
 
-	"github.com/joshqu1985/fireman/pkg/util/utime"
-	"github.com/joshqu1985/protos/pkg/model"
+	"github.com/joshqu1985/fireman/util/utime"
+	"github.com/joshqu1985/protos/model"
 )
 
 type Follower struct {

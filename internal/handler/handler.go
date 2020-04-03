@@ -5,7 +5,8 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/joshqu1985/protos/pkg/pb"
+	"github.com/joshqu1985/protos/pb"
+
 	"github.com/joshqu1985/service-relation/internal/service"
 )
 

@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"github.com/joshqu1985/fireman/pkg/store/redis"
+	"github.com/joshqu1985/fireman/store/redis"
 )
 
 type kv struct {
